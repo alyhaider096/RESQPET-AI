@@ -1,0 +1,26 @@
+# AnimalCare PK - Development Dependencies
+# Install with: pip install -r requirements.txt -r requirements-dev.txt
+
+# Include production dependencies
+-r requirements.txt
+
+# Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0  # Coverage reports
+pytest-asyncio>=0.21.0  # Async test support
+pytest-mock>=3.12.0  # Mocking
+
+# Code Quality
+black>=23.0.0  # Code formatter
+ruff>=0.1.0  # Fast linter
+mypy>=1.7.0  # Type checker
+isort>=5.12.0  # Import sorting
+
+# Security
+bandit>=1.7.5  # Security linting
+safety>=2.3.0  # Dependency vulnerability scanning
+pip-audit>=2.6.0  # Audit dependencies
+
+# Development
+ipython>=8.18.0  # Better REPL
+watchfiles>=0.21.0  # File watching for hot reload

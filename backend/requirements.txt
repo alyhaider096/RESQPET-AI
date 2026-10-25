@@ -1,0 +1,39 @@
+# AnimalCare PK - Backend Dependencies
+# Production dependencies only
+# Install with: pip install -r requirements.txt
+
+# Web Framework
+fastapi>=0.104.0,<1.0.0
+uvicorn[standard]>=0.24.0,<1.0.0
+python-multipart>=0.0.6  # For file uploads
+
+# Database
+sqlalchemy>=2.0.0,<3.0.0
+alembic>=1.12.0,<2.0.0
+psycopg2-binary>=2.9.9  # PostgreSQL driver
+
+# Configuration
+pydantic>=2.0.0,<3.0.0
+pydantic-settings>=2.0.0,<3.0.0
+python-dotenv>=1.0.0
+
+# Authentication & Security
+python-jose[cryptography]>=3.3.0  # JWT
+passlib>=1.7.4  # PBKDF2 password hashing
+cryptography>=41.0.0  # PII encryption
+
+# WebSocket
+websockets>=12.0
+
+# HTTP Client (for external API calls)
+httpx>=0.25.0
+
+# Date/Time
+python-dateutil>=2.8.0
+
+# Validation
+email-validator>=2.1.0
+phonenumbers>=8.13.0  # Phone number validation
+
+# Utilities
+python-slugify>=8.0.0

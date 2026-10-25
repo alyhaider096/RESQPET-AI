@@ -1,0 +1,64 @@
+# AnimalCare PK - Docker Compose Configuration
+# Local development environment only (not for production)
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: animalcare_postgres
+    environment:
+      POSTGRES_DB: animalcare_db
+      POSTGRES_USER: animalcare
+      POSTGRES_PASSWORD: animalcare_dev_password
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U animalcare -d animalcare_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - animalcare_network
+
+  # FastAPI Backend
+  backend:
+    build:
+      context: .
+      dockerfile: infra/docker/backend.Dockerfile
+    container_name: animalcare_backend
+    environment:
+      - DATABASE_URL=postgresql://animalcare:animalcare_dev_password@postgres:5432/animalcare_db
+      - APP_ENV=development
+      - DEBUG=true
+      - APP_SECRET_KEY=${APP_SECRET_KEY:-development-only-app-secret-change-before-demo}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-development-only-jwt-secret-change-before-demo}
+      - PII_ENCRYPTION_KEY=${PII_ENCRYPTION_KEY:-development-only-pii-secret-change-before-demo}
+      - PHONE_HASH_SALT=${PHONE_HASH_SALT:-development-only-phone-salt-change-before-demo}
+      - VAPI_TOOL_SECRET=${VAPI_TOOL_SECRET:-development-only-vapi-secret-change-before-demo}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - animalcare_network
+
+networks:
+  animalcare_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
