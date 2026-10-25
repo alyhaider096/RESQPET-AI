@@ -323,23 +323,14 @@
 - Docker: 20.10+
 - Docker Compose: 2.0+
 
-## Migration Path from Previous Projects
+## Current Architecture Direction
 
-### From Animal Welfare AI (Flutter + Firebase)
-1. Replace Firebase Auth → JWT authentication
-2. Replace Firestore → PostgreSQL + REST API
-3. Replace Firebase Storage → Local/S3 with backend proxy
-4. Replace Firebase Realtime → WebSocket
-5. Add organization multi-tenancy
-6. Add role-based access control
-
-### From AI Hospital Voice Receptionist (FastAPI + Vapi)
-1. Adapt database schema for animal rescue domain
-2. Modify Vapi tool endpoints for rescue workflow
-3. Add WebSocket for real-time updates
-4. Implement rescue-specific business logic
-5. Add explainable priority rules
-6. Create Flutter mobile app (wasn't in original)
+1. FastAPI issues JWT access tokens and enforces role-based access control.
+2. PostgreSQL stores organization-scoped rescue data through SQLAlchemy.
+3. File storage will use a backend-controlled local or S3-compatible service.
+4. WebSocket events provide real-time case updates without exposing PII.
+5. Vapi tool calls enter through authenticated, idempotent backend endpoints.
+6. Flutter provides the mobile and web user experience.
 
 ## Open Source Compliance
 

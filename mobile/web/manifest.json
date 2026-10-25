@@ -1,11 +1,11 @@
 {
-    "name": "animlawelfare",
-    "short_name": "animlawelfare",
+    "name": "ResQPet AI",
+    "short_name": "ResQPet",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "animal welfare project with tensorflow lite edge device open cv firebase",
+    "background_color": "#F6EEDC",
+    "theme_color": "#16B89D",
+    "description": "Animal rescue coordination for pets, livestock and working animals across Pakistan.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

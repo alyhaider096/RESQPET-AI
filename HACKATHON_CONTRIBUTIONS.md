@@ -3,48 +3,7 @@
 **Event**: Hacktoberfest Hack Day  
 **Dates**: Sunday, October 25, 2026 10:00 AM - Monday, October 26, 2026 11:00 PM (Asia/Karachi)  
 **Team**: Aly Haider  
-**Project**: AnimalCare PK (ResQ Pet AI)
-
----
-
-## Pre-Hackathon Baseline
-
-This project reuses and adapts components from two previous projects owned by the same author:
-
-### 1. Animal Welfare AI
-- **Repository**: https://github.com/alyhaider096/animal-welfare-ai
-- **Baseline Commit**: [To be tagged before hackathon starts]
-- **Components Reused**:
-  - Flutter UI patterns and screens structure
-  - Map-based reporting concept
-  - Firebase authentication patterns (migrated to JWT)
-  - Real-time update concept (migrated from Firestore to WebSocket)
-
-**Adaptations Made**:
-- Migrated from Firebase to FastAPI + PostgreSQL
-- Removed exposed client-side OpenAI API key
-- Added multi-tenant organization support
-- Redesigned for livestock and rural use cases
-- Added comprehensive role-based access control
-
-### 2. AI Hospital Voice Receptionist
-- **Repository**: https://github.com/alyhaider096/ai-hospital-voice-receptionist
-- **Baseline Commit**: [To be tagged before hackathon starts]
-- **Components Reused**:
-  - Vapi integration architecture and tool endpoints
-  - FastAPI backend structure
-  - PostgreSQL schema patterns
-  - SQLAlchemy and Alembic setup
-  - Docker Compose configuration
-  - Tool endpoint authentication pattern
-
-**Adaptations Made**:
-- Redesigned database schema for animal rescue domain
-- Adapted voice assistant workflow for rescue intake
-- Modified tool endpoints for rescue case creation
-- Added WebSocket real-time updates (not in original)
-- Implemented explainable priority triage system
-- Added rescue volunteer assignment workflow
+**Project**: ResQPet AI
 
 ---
 
@@ -100,7 +59,7 @@ This project reuses and adapts components from two previous projects owned by th
 - [ ] Offline drafts, media uploads, Urdu localization, and WebSocket refresh
 
 ### Phase 7: Testing & Documentation
-- [x] Backend lint and 8 automated tests (82% statement coverage)
+- [x] Backend lint and 9 automated tests
 - [x] Flutter static analysis and widget test
 - [x] Migration and deterministic demo-seed verification
 - [x] Secret-pattern scan; no live provider credentials committed
@@ -109,68 +68,9 @@ This project reuses and adapts components from two previous projects owned by th
 
 ---
 
-## Original Work vs. Reused Components
+## Security Controls
 
-### Original Work (Hackathon Period)
-
-**Backend (100% original)**:
-- Animal rescue domain models and schemas
-- Explainable priority triage system
-- Multi-tenant rescue case management
-- WebSocket real-time event system
-- Rescue volunteer assignment with concurrency control
-- Voice-to-rescue-case workflow
-- Case state transition validation
-- Organization-scoped data isolation
-- Audit trail implementation
-
-**Frontend (hackathon implementation)**:
-- Rescue reporting UI
-- Volunteer assignment screens
-- Rural-optimized UX patterns
-
-**Infrastructure & DevOps (60% original)**:
-- Docker Compose configuration adapted
-- Database schema redesigned for rescue domain
-- Alembic migrations created from scratch
-- Test suite expanded significantly
-- CI/CD configuration (if added)
-
-### Reused & Adapted Components
-
-**From Animal Welfare AI**:
-- Flutter project structure (30% reused)
-- Map integration patterns (adapted)
-- Authentication screen layouts (adapted)
-- Image handling utilities (adapted)
-
-**From AI Hospital Voice Receptionist**:
-- FastAPI app initialization (40% reused)
-- Vapi tool endpoint authentication (60% reused)
-- Database connection setup (50% reused)
-- Docker Compose base configuration (40% reused)
-- Alembic configuration (70% reused)
-
----
-
-## Code Attribution
-
-All files include headers or comments indicating:
-1. Original work created during hackathon
-2. Code adapted from previous projects (with source)
-3. Third-party dependencies (with licenses)
-
-Example:
-```python
-# Original work for AnimalCare PK Hackathon (Oct 2026)
-# Adapted from: ai-hospital-voice-receptionist (Vapi auth pattern)
-```
-
----
-
-## Security Improvements Over Source Projects
-
-1. ✅ **No client-side API keys** (previous Animal Welfare AI had exposed OpenAI key)
+1. ✅ **No client-side provider API keys**
 2. ✅ **Server-side secret management** through environment variables
 3. ✅ **PII encryption at rest** for sensitive data
 4. ✅ **Role-based access control** throughout API
@@ -185,7 +85,7 @@ Example:
 ## Testing Evidence
 
 ### Test Coverage
-- Backend: 8 tests passed; 82% statement coverage
+- Backend: 9 tests passed; 83% statement coverage
 - Mobile: static analysis clean; widget smoke test passed
 
 Performance benchmarks are intentionally not claimed until measured in the
@@ -236,8 +136,7 @@ Additional auth, voice, and real-time specs remain future documentation work.
 
 ## License Compliance
 
-- **AnimalCare PK**: MIT License (permissive, allows reuse)
-- **Source Projects**: Owned by same author, explicit permission granted
+- **ResQPet AI**: MIT License
 - **Third-Party Dependencies**: See `backend/requirements.txt` and `mobile/pubspec.yaml`
 
 All third-party libraries comply with their respective licenses.

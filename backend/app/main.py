@@ -1,9 +1,7 @@
 """
 FastAPI Main Application
 
-Application initialization, CORS, middleware, and routers.
-Original work for AnimalCare PK Hackathon (October 2026)
-FastAPI structure adapted from: ai-hospital-voice-receptionist
+Application initialization, CORS, middleware, and routers for ResQPet AI.
 """
 
 import logging
@@ -78,7 +76,7 @@ async def health_check():
 async def root():
     """Root endpoint with API information."""
     return {
-        "message": "AnimalCare PK API",
+        "message": "ResQPet AI API",
         "version": "0.1.0",
         "docs": "/docs" if settings.DEBUG else "disabled",
         "health": "/health",

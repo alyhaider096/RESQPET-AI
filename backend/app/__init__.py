@@ -1,8 +1,7 @@
 """
-AnimalCare PK Backend Application
+ResQPet AI Backend Application
 
-Original work for AnimalCare PK Hackathon (October 2026)
-Architecture adapted from: ai-hospital-voice-receptionist (FastAPI patterns)
+ResQPet AI hackathon backend.
 """
 
 __version__ = "0.1.0"

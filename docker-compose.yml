@@ -1,4 +1,4 @@
-# AnimalCare PK - Docker Compose Configuration
+# ResQPet AI - Docker Compose Configuration
 # Local development environment only (not for production)
 
 services:

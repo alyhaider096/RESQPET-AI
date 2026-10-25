@@ -10,6 +10,30 @@ Authorization: Bearer YOUR_VAPI_TOOL_SECRET
 For local development, expose port `8000` with a trusted HTTPS tunnel and use
 that public URL. Never put `VAPI_API_KEY` or `VAPI_TOOL_SECRET` in Flutter.
 
+## Fastest hackathon demo path
+
+1. Start the backend with a strong `VAPI_TOOL_SECRET` and a PostgreSQL or
+   demo SQLite database that has already been migrated and seeded.
+2. Expose port `8000` through a public HTTPS URL. Confirm the public
+   `/health` endpoint before configuring Vapi.
+3. In Vapi, create the function tool below and use the public webhook URL as
+   its server URL. Configure a bearer credential whose value matches
+   `VAPI_TOOL_SECRET`; do not paste the secret into the prompt.
+4. Create the assistant, attach the tool, paste the system prompt below, test
+   it in the dashboard, and publish the version used by phone calls.
+5. In **Phone Numbers**, choose **Create Phone Number → Free Vapi Number**,
+   enter an available three-digit US area code, and assign the published
+   assistant under **Inbound Settings**. The first Vapi-managed number can be
+   requested without adding a payment method, but it is a US number and is
+   inbound-only.
+6. Call that number from a phone you control, complete one rescue report, and
+   verify both **Logs → Calls** in Vapi and the new case in the ResQPet admin
+   dashboard.
+
+For a Pakistan-local number, outbound calls, or international calling, import
+a supported provider number (for example Twilio, Telnyx, or DIDWW). That is a
+separate paid/provider setup; the free Vapi number cannot place outbound calls.
+
 ## Function tool
 
 Create a synchronous Function tool named `create_rescue_case` and attach it to

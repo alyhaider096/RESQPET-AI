@@ -1,4 +1,4 @@
-# ResQ Pet AI (AnimalCare PK)
+# ResQPet AI
 
 **AI-Assisted Animal Welfare Operating System for Pakistan**
 
@@ -71,6 +71,10 @@ ResQ Pet AI is an open-source animal welfare coordination platform connecting ci
 | **Real-Time** | WebSocket |
 | **Container** | Docker Compose |
 | **Testing** | pytest, flutter_test |
+
+Authentication is handled by the FastAPI backend with signed JWTs stored in
+Flutter secure storage. Firebase is not used. PostgreSQL is the deployment
+database; SQLite is supported only for a fast local hackathon demo.
 
 ---
 
@@ -191,7 +195,7 @@ flutter build apk --release
 Production refresh tokens and rate limiting are planned hardening work, not
 part of the hackathon build.
 
-**Security Note**: An earlier version of the Animal Welfare AI project contained an exposed OpenAI API key. **That key must be revoked if it hasn't been already, and must never be reused in this project.** All provider keys are now managed server-side through environment variables.
+All provider credentials are managed server-side through environment variables.
 
 ---
 
@@ -264,25 +268,6 @@ See [HACKATHON_CONTRIBUTIONS.md](HACKATHON_CONTRIBUTIONS.md) for details on what
 ## 📜 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 🙏 Acknowledgments
-
-This project reuses and adapts code from two previous projects owned by the same author:
-
-1. **Animal Welfare AI** ([GitHub](https://github.com/alyhaider096/animal-welfare-ai))
-   - Flutter UI patterns
-   - Firebase to PostgreSQL migration patterns
-   - Map-based reporting concepts
-
-2. **AI Hospital Voice Receptionist** ([GitHub](https://github.com/alyhaider096/ai-hospital-voice-receptionist))
-   - Vapi integration architecture
-   - FastAPI backend structure
-   - PostgreSQL schema patterns
-   - Tool endpoint authentication
-
-See [HACKATHON_CONTRIBUTIONS.md](HACKATHON_CONTRIBUTIONS.md) for detailed attribution.
 
 ---
 

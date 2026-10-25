@@ -2,7 +2,7 @@
 Configuration Management
 
 Load and validate environment variables.
-Original work for AnimalCare PK Hackathon (October 2026)
+ResQPet AI hackathon configuration (October 2026)
 """
 
 from pydantic import field_validator
@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
     # Application
-    APP_NAME: str = "AnimalCare PK"
+    APP_NAME: str = "ResQPet AI"
     APP_ENV: str = "development"
     DEBUG: bool = True
     LOG_LEVEL: str = "INFO"

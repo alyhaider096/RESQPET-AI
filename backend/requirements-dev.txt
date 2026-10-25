@@ -1,4 +1,4 @@
-# AnimalCare PK - Development Dependencies
+# ResQPet AI - Development Dependencies
 # Install with: pip install -r requirements.txt -r requirements-dev.txt
 
 # Include production dependencies

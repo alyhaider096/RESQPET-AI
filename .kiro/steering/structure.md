@@ -3,7 +3,7 @@
 ## Monorepo Layout
 
 ```
-animalcare-pk/
+resqpet-ai/
 ├── backend/              # FastAPI backend application
 ├── mobile/               # Flutter mobile application
 ├── ml/                   # Machine learning models and training

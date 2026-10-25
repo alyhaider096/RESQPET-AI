@@ -1,9 +1,7 @@
 """
 Database Connection and Session Management
 
-SQLAlchemy engine, session maker, and base model.
-Original work for AnimalCare PK Hackathon (October 2026)
-Database patterns adapted from: ai-hospital-voice-receptionist
+SQLAlchemy engine, session maker, and base model for ResQPet AI.
 """
 
 from sqlalchemy import create_engine

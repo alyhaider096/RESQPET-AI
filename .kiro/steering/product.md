@@ -1,8 +1,8 @@
-# AnimalCare PK Product Steering
+# ResQPet AI Product Steering
 
 ## Product Vision
 
-AnimalCare PK is an AI-assisted animal welfare operating system connecting citizens, pet owners, livestock farmers, NGOs, rescue teams, veterinarians, and responsible adopters across Pakistan.
+ResQPet AI is an AI-assisted animal welfare operating system connecting citizens, pet owners, livestock farmers, NGOs, rescue teams, veterinarians, and responsible adopters across Pakistan.
 
 ## Target Users
 

@@ -2,9 +2,11 @@
 
 ## Critical Security Context
 
-**⚠️ IMPORTANT**: An earlier version of the Animal Welfare AI project contained an exposed OpenAI API key in the Flutter client code. That key has been **revoked** and must **NEVER** be copied or reused.
+ResQPet keeps provider credentials exclusively on the backend. Never place
+OpenAI, Vapi, database, JWT, or encryption secrets in Flutter client code or
+commit them to Git.
 
-This project implements defense-in-depth security to prevent similar issues.
+This project implements defense-in-depth security to prevent credential leaks.
 
 ---
 

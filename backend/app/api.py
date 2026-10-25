@@ -67,6 +67,8 @@ def public_event(event_type: str, case: RescueCase) -> dict:
 def ensure_case_access(case: RescueCase, user: User) -> None:
     if user.role != Role.SYSTEM_ADMIN.value and case.organization_id != user.organization_id:
         raise HTTPException(status_code=403, detail="Case belongs to another organization")
+    if user.role == Role.PUBLIC_REPORTER.value and case.reporter_user_id != user.id:
+        raise HTTPException(status_code=403, detail="Case belongs to another reporter")
 
 
 def create_case_record(
@@ -185,6 +187,8 @@ def list_cases(
     query = select(RescueCase).order_by(RescueCase.created_at.desc()).limit(100)
     if user.role != Role.SYSTEM_ADMIN.value:
         query = query.where(RescueCase.organization_id == user.organization_id)
+    if user.role == Role.PUBLIC_REPORTER.value:
+        query = query.where(RescueCase.reporter_user_id == user.id)
     if case_status:
         query = query.where(RescueCase.status == case_status)
     if priority:

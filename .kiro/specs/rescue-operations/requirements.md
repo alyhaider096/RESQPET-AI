@@ -2,7 +2,7 @@
 
 ## Introduction
 
-The rescue-operations feature is the P0 (must-ship) core capability of AnimalCare PK. It provides a complete vertical slice of the emergency animal rescue workflow, enabling citizens to report injured or endangered animals through multiple channels (voice call or mobile app), NGO coordinators to verify and assign cases, and rescue volunteers to execute rescues with real-time status updates. The system implements explainable priority classification using transparent business rules, organization-scoped multi-tenancy, and comprehensive audit trails for accountability.
+The rescue-operations feature is the P0 (must-ship) core capability of ResQPet AI. It provides a complete vertical slice of the emergency animal rescue workflow, enabling citizens to report injured or endangered animals through multiple channels (voice call or mobile app), NGO coordinators to verify and assign cases, and rescue volunteers to execute rescues with real-time status updates. The system implements explainable priority classification using transparent business rules, organization-scoped multi-tenancy, and comprehensive audit trails for accountability.
 
 This feature supports Pakistan's diverse animal welfare needs, including urban pets (dogs, cats) and rural livestock (cattle, buffalo, goats, sheep, poultry, horses, donkeys).
 
@@ -10,7 +10,7 @@ This feature supports Pakistan's diverse animal welfare needs, including urban p
 
 ## Glossary
 
-- **System**: The AnimalCare PK backend application
+- **System**: The ResQPet AI backend application
 - **Mobile_App**: The Flutter mobile application for reporters and volunteers
 - **Voice_Assistant**: The Vapi AI voice receptionist accessible via phone call
 - **Reporter**: A citizen (public_reporter, pet_owner, or livestock_farmer) submitting a rescue case

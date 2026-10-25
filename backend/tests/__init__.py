@@ -1,5 +1,5 @@
 """
-Test Suite for AnimalCare PK Backend
+Test Suite for ResQPet AI Backend
 
-Original work for AnimalCare PK Hackathon (October 2026)
+ResQPet AI hackathon test suite (October 2026)
 """

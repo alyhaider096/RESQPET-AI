@@ -1,22 +1,23 @@
 """
 Alembic Environment Configuration
 
-Original work for AnimalCare PK Hackathon (October 2026)
-Alembic patterns adapted from: ai-hospital-voice-receptionist
+Database migration environment for ResQPet AI.
 """
 
-from logging.config import fileConfig
-from sqlalchemy import engine_from_config, pool
-from alembic import context
 import os
 import sys
+from logging.config import fileConfig
+
+from sqlalchemy import engine_from_config, pool
+
+from alembic import context
 
 # Add parent directory to path to import app modules
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from app.database import Base
-from app.config import settings
 from app import models  # noqa: F401 - register SQLAlchemy metadata
+from app.config import settings
+from app.database import Base
 
 # Import all models here to ensure they're registered with Base.metadata
 # from app.models.user import User

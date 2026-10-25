@@ -51,6 +51,30 @@ def test_authenticated_case_journey(client, identities):
     assert accepted.status_code == 200 and accepted.json()["status"] == CaseStatus.ACCEPTED.value
 
 
+def test_reporter_only_lists_their_own_cases(client, identities, db_session):
+    org, users = identities
+    reporter = users[Role.PUBLIC_REPORTER.value]
+    other_reporter = type(reporter)(
+        email="other-reporter@example.test",
+        full_name="Other Reporter",
+        password_hash=reporter.password_hash,
+        role=Role.PUBLIC_REPORTER.value,
+        organization_id=org.id,
+    )
+    db_session.add(other_reporter)
+    db_session.commit()
+    client.post("/api/v1/cases", json=rescue_payload(org.id), headers=auth_header(reporter))
+    client.post(
+        "/api/v1/cases",
+        json=rescue_payload(org.id, species="goat"),
+        headers=auth_header(other_reporter),
+    )
+    response = client.get("/api/v1/cases", headers=auth_header(reporter))
+    assert response.status_code == 200
+    assert len(response.json()) == 1
+    assert response.json()[0]["species"] == "buffalo"
+
+
 def test_vapi_idempotency(client, identities):
     org, _ = identities
     payload = rescue_payload(org.id, vapi_call_id="call-demo-001")
