@@ -1,0 +1,55 @@
+services:
+  - type: web
+    name: resqpet-ai-api
+    runtime: python
+    plan: free
+    region: singapore
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: alembic upgrade head && python -m scripts.seed_data && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health/ready
+    autoDeployTrigger: commit
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
+      - key: APP_NAME
+        value: ResQPet AI
+      - key: APP_ENV
+        value: production
+      - key: DEBUG
+        value: "false"
+      - key: LOG_LEVEL
+        value: INFO
+      - key: DATABASE_URL
+        fromDatabase:
+          name: resqpet-ai-db
+          property: connectionString
+      - key: APP_SECRET_KEY
+        generateValue: true
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: PII_ENCRYPTION_KEY
+        generateValue: true
+      - key: PHONE_HASH_SALT
+        generateValue: true
+      - key: VAPI_TOOL_SECRET
+        generateValue: true
+      - key: ADMIN_BOOTSTRAP_EMAIL
+        value: admin@resqpet.ai
+      - key: ADMIN_BOOTSTRAP_PASSWORD
+        generateValue: true
+      - key: CORS_ORIGINS
+        value: '["https://alyhaider096.github.io","http://localhost:3000","http://127.0.0.1:8080"]'
+      - key: JWT_ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "30"
+      - key: RATE_LIMIT_PER_MINUTE
+        value: "60"
+
+databases:
+  - name: resqpet-ai-db
+    databaseName: resqpet
+    user: resqpet
+    plan: free
+    region: singapore
+    postgresMajorVersion: "18"
+    ipAllowList: []

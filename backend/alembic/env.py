@@ -17,7 +17,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from app import models  # noqa: F401 - register SQLAlchemy metadata
 from app.config import settings
-from app.database import Base
+from app.database import Base, normalize_database_url
 
 # Import all models here to ensure they're registered with Base.metadata
 # from app.models.user import User
@@ -36,7 +36,7 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 
 # Override sqlalchemy.url with environment variable
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
+config.set_main_option("sqlalchemy.url", normalize_database_url(settings.DATABASE_URL))
 
 
 def run_migrations_offline() -> None:

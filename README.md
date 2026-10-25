@@ -28,6 +28,7 @@ ResQ Pet AI is an open-source animal welfare coordination platform connecting ci
 - 📋 **Kiro Specifications** - Product, tech, structure, security steering
 - 📝 **Rescue Operations Spec** - Requirements, design, and implementation tasks
 - 🐳 **Docker Compose** - Local development environment
+- ☁️ **Render Blueprint** - Reproducible HTTPS API and PostgreSQL demo deployment
 - 🧪 **Automated Checks** - Backend API tests, coverage, Ruff, Flutter analysis, and widget test
 
 #### 🔌 Needs deployment credentials

@@ -8,12 +8,15 @@ import logging
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 from app.api import router as api_router
 from app.config import settings
+from app.database import get_db
 
 # Configure logging
 logging.basicConfig(
@@ -34,7 +37,20 @@ async def lifespan(_: FastAPI):
 app = FastAPI(
     title=settings.APP_NAME,
     version="0.1.0",
-    description="AI-Assisted Animal Welfare Operating System for Pakistan",
+    description=(
+        "ResQPet AI coordinates multi-species rescue reports across citizens, "
+        "NGO coordinators, rescue volunteers, administrators, and Vapi voice intake."
+    ),
+    contact={"name": "ResQPet AI", "url": "https://github.com/alyhaider096/RESQPET-AI"},
+    license_info={"name": "MIT", "identifier": "MIT"},
+    openapi_tags=[
+        {"name": "health", "description": "Deployment and uptime checks."},
+        {"name": "auth", "description": "JWT login and current-user identity."},
+        {"name": "users", "description": "Role-scoped rescue-team discovery."},
+        {"name": "rescue", "description": "Report, verify, assign, and resolve rescue cases."},
+        {"name": "voice", "description": "Bearer-authenticated Vapi tool endpoints."},
+    ],
+    servers=[{"url": settings.PUBLIC_API_URL or settings.API_BASE_URL}],
     docs_url="/docs" if settings.DEBUG else None,
     redoc_url="/redoc" if settings.DEBUG else None,
     lifespan=lifespan,
@@ -69,6 +85,13 @@ async def health_check():
         "version": "0.1.0",
         "service": settings.APP_NAME,
     }
+
+
+@app.get("/health/ready", tags=["health"], summary="Check API and database readiness")
+def readiness_check(db: Session = Depends(get_db)):
+    """Return healthy only after the configured database accepts a query."""
+    db.execute(text("SELECT 1"))
+    return {"status": "ready", "database": "reachable"}
 
 
 # Root Endpoint

@@ -85,7 +85,7 @@
 ## Testing Evidence
 
 ### Test Coverage
-- Backend: 9 tests passed; 83% statement coverage
+- Backend: 12 tests passed; 84% statement coverage
 - Mobile: static analysis clean; widget smoke test passed
 
 Performance benchmarks are intentionally not claimed until measured in the

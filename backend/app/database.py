@@ -9,6 +9,16 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 
 from app.config import settings
 
+
+def normalize_database_url(url: str) -> str:
+    """Use the installed psycopg2 driver for provider-style PostgreSQL URLs."""
+    if url.startswith("postgres://"):
+        url = "postgresql://" + url.removeprefix("postgres://")
+    if url.startswith("postgresql://"):
+        return "postgresql+psycopg2://" + url.removeprefix("postgresql://")
+    return url
+
+
 # Create SQLAlchemy engine
 engine_kwargs = {"pool_pre_ping": True, "echo": settings.DEBUG}
 if settings.DATABASE_URL.startswith("sqlite"):
@@ -20,7 +30,7 @@ else:
         pool_timeout=settings.DB_POOL_TIMEOUT,
     )
 
-engine = create_engine(settings.DATABASE_URL, **engine_kwargs)
+engine = create_engine(normalize_database_url(settings.DATABASE_URL), **engine_kwargs)
 
 # Create session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

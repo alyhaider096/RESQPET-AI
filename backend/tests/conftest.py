@@ -39,13 +39,18 @@ def identities(db_session):
     db_session.add(org)
     db_session.flush()
     users = {}
-    for role in [Role.NGO_COORDINATOR, Role.RESCUE_VOLUNTEER, Role.PUBLIC_REPORTER]:
+    for role in [
+        Role.SYSTEM_ADMIN,
+        Role.NGO_COORDINATOR,
+        Role.RESCUE_VOLUNTEER,
+        Role.PUBLIC_REPORTER,
+    ]:
         user = User(
             email=f"{role.value}@example.test",
             full_name=role.value,
             password_hash=hash_password("TestPassword123!"),
             role=role.value,
-            organization_id=org.id,
+            organization_id=None if role == Role.SYSTEM_ADMIN else org.id,
         )
         db_session.add(user)
         users[role.value] = user
