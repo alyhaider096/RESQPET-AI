@@ -1,11 +1,11 @@
-# ResQPet AI - Docker Compose Configuration
+# ResQ Pet AI - Docker Compose Configuration
 # Local development environment only (not for production)
 
 services:
   # PostgreSQL Database
   postgres:
     image: postgres:15-alpine
-    container_name: animalcare_postgres
+    container_name: resqpet_postgres
     environment:
       POSTGRES_DB: animalcare_db
       POSTGRES_USER: animalcare
@@ -21,14 +21,14 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - animalcare_network
+      - resqpet_network
 
   # FastAPI Backend
   backend:
     build:
-      context: .
-      dockerfile: infra/docker/backend.Dockerfile
-    container_name: animalcare_backend
+      context: ./backend
+      dockerfile: ../infra/docker/backend.Dockerfile
+    container_name: resqpet_backend
     environment:
       - DATABASE_URL=postgresql://animalcare:animalcare_dev_password@postgres:5432/animalcare_db
       - APP_ENV=development
@@ -38,6 +38,7 @@ services:
       - PII_ENCRYPTION_KEY=${PII_ENCRYPTION_KEY:-development-only-pii-secret-change-before-demo}
       - PHONE_HASH_SALT=${PHONE_HASH_SALT:-development-only-phone-salt-change-before-demo}
       - VAPI_TOOL_SECRET=${VAPI_TOOL_SECRET:-development-only-vapi-secret-change-before-demo}
+      - ADMIN_BOOTSTRAP_PASSWORD=${ADMIN_BOOTSTRAP_PASSWORD:-development-only-admin-password-change-before-demo}
     ports:
       - "8000:8000"
     volumes:
@@ -53,10 +54,10 @@ services:
       retries: 3
       start_period: 40s
     networks:
-      - animalcare_network
+      - resqpet_network
 
 networks:
-  animalcare_network:
+  resqpet_network:
     driver: bridge
 
 volumes:

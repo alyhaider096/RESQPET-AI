@@ -128,6 +128,7 @@ credentials.json
 
 # Test coverage
 coverage/
+coverage.xml
 .nyc_output/
 
 # Jupyter Notebooks

@@ -71,3 +71,9 @@ def client(db_session):
 
 def auth_header(user):
     return {"Authorization": f"Bearer {create_access_token(user.id, user.role, user.organization_id)}"}
+
+
+@pytest.fixture
+def test_app():
+    """Expose the application for metadata checks."""
+    return app

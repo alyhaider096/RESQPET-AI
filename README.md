@@ -243,11 +243,11 @@ This is not just a "cute cats-and-dogs" app. We support:
 
 ## 🌍 Built for Pakistan
 
-- 🗣️ **Bilingual**: English and Urdu-ready interface
-- 📶 **Low-data optimized**: Image compression, short videos
-- 🎤 **Voice notes**: For users with limited literacy
 - 📍 **Manual location entry**: Village and district support
-- 📞 **SMS fallback**: Contact reference for rural areas
+- 🐄 **Multi-species intake**: Pets, livestock, poultry, and working animals
+
+Urdu interface localization, media compression, voice-note uploads, and SMS
+fallback are planned. They are not part of the implemented demo.
 
 ---
 
