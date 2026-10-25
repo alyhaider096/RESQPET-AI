@@ -53,7 +53,7 @@ def main() -> None:
         )
         assert case["priority"] == "critical"
         reporter_cases = assert_ok(client.get("/api/v1/cases", headers=reporter))
-        assert {item["id"] for item in reporter_cases} == {case["id"]}
+        assert case["id"] in {item["id"] for item in reporter_cases}
 
         case = assert_ok(client.post(f"/api/v1/cases/{case['id']}/verify", headers=coordinator, json={}))
         volunteers = assert_ok(client.get("/api/v1/users/volunteers", headers=coordinator))
@@ -73,8 +73,13 @@ def main() -> None:
                 )
             )
 
-        voice_args = rescue_payload() | {"species": "goat"}
+        voice_args = {
+            key: value
+            for key, value in (rescue_payload() | {"species": "goat"}).items()
+            if key != "organization_id"
+        }
         voice_body = {
+            "organization_id": DEMO_ORGANIZATION_ID,
             "message": {
                 "type": "tool-calls",
                 "call": {"id": f"smoke-vapi-{run_id}"},

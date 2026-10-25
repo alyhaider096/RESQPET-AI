@@ -333,6 +333,7 @@ async def vapi_webhook(
     """Handle Vapi's native `tool-calls` server-message envelope."""
     verify_vapi_secret(authorization)
     message = payload.get("message") or {}
+    static_organization_id = payload.get("organization_id")
     if message.get("type") != "tool-calls":
         return {"received": True}
 
@@ -349,6 +350,8 @@ async def vapi_webhook(
             arguments = function.get("arguments") or {}
             if isinstance(arguments, str):
                 arguments = json.loads(arguments)
+            if static_organization_id:
+                arguments["organization_id"] = static_organization_id
             arguments["vapi_call_id"] = call_id or arguments.get("vapi_call_id")
             data = RescueCaseCreate.model_validate(arguments)
             if not data.vapi_call_id:

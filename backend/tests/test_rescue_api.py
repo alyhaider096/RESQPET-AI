@@ -188,6 +188,7 @@ def test_native_vapi_webhook_contract(client, identities):
     org, _ = identities
     headers = {"Authorization": "Bearer test-vapi-secret-000000000000000000000"}
     body = {
+        "organization_id": org.id,
         "message": {
             "type": "tool-calls",
             "call": {"id": "call-native-001"},
@@ -197,7 +198,11 @@ def test_native_vapi_webhook_contract(client, identities):
                     "type": "function",
                     "function": {
                         "name": "create_rescue_case",
-                        "arguments": rescue_payload(org.id),
+                        "arguments": {
+                            key: value
+                            for key, value in rescue_payload(org.id).items()
+                            if key != "organization_id"
+                        },
                     },
                 }
             ],

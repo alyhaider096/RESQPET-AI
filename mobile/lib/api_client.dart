@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -41,11 +42,23 @@ class ApiClient {
   final http.Client _http;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   String? _token;
+  static const requestTimeout = Duration(seconds: 20);
 
   Map<String, String> get _headers => {
         'Content-Type': 'application/json',
         if (_token != null) 'Authorization': 'Bearer $_token',
       };
+
+  Future<http.Response> _withTimeout(Future<http.Response> request) async {
+    try {
+      return await request.timeout(requestTimeout);
+    } on TimeoutException {
+      throw ApiException(
+        'The rescue server took too long to respond. Please try again.',
+        408,
+      );
+    }
+  }
 
   Future<dynamic> _decode(http.Response response) async {
     final dynamic body =
@@ -66,10 +79,12 @@ class ApiClient {
   }
 
   Future<Session> login(String email, String password) async {
-    final response = await _http.post(
-      Uri.parse('$apiBaseUrl/api/v1/auth/login'),
-      headers: const {'Content-Type': 'application/json'},
-      body: jsonEncode({'email': email.trim(), 'password': password}),
+    final response = await _withTimeout(
+      _http.post(
+        Uri.parse('$apiBaseUrl/api/v1/auth/login'),
+        headers: const {'Content-Type': 'application/json'},
+        body: jsonEncode({'email': email.trim(), 'password': password}),
+      ),
     );
     final body = await _decode(response) as Map<String, dynamic>;
     _token = body['access_token'] as String;
@@ -86,53 +101,65 @@ class ApiClient {
   }
 
   Future<Map<String, dynamic>> getMe() async {
-    final response = await _http.get(
-      Uri.parse('$apiBaseUrl/api/v1/auth/me'),
-      headers: _headers,
+    final response = await _withTimeout(
+      _http.get(
+        Uri.parse('$apiBaseUrl/api/v1/auth/me'),
+        headers: _headers,
+      ),
     );
     return await _decode(response) as Map<String, dynamic>;
   }
 
   Future<List<Map<String, dynamic>>> getCases() async {
-    final response = await _http.get(
-      Uri.parse('$apiBaseUrl/api/v1/cases'),
-      headers: _headers,
+    final response = await _withTimeout(
+      _http.get(
+        Uri.parse('$apiBaseUrl/api/v1/cases'),
+        headers: _headers,
+      ),
     );
     return (await _decode(response) as List).cast<Map<String, dynamic>>();
   }
 
   Future<Map<String, dynamic>> createCase(Map<String, dynamic> data) async {
-    final response = await _http.post(
-      Uri.parse('$apiBaseUrl/api/v1/cases'),
-      headers: _headers,
-      body: jsonEncode(data),
+    final response = await _withTimeout(
+      _http.post(
+        Uri.parse('$apiBaseUrl/api/v1/cases'),
+        headers: _headers,
+        body: jsonEncode(data),
+      ),
     );
     return await _decode(response) as Map<String, dynamic>;
   }
 
   Future<Map<String, dynamic>> verifyCase(String caseId) async {
-    final response = await _http.post(
-      Uri.parse('$apiBaseUrl/api/v1/cases/$caseId/verify'),
-      headers: _headers,
-      body: '{}',
+    final response = await _withTimeout(
+      _http.post(
+        Uri.parse('$apiBaseUrl/api/v1/cases/$caseId/verify'),
+        headers: _headers,
+        body: '{}',
+      ),
     );
     return await _decode(response) as Map<String, dynamic>;
   }
 
   Future<List<Map<String, dynamic>>> getVolunteers() async {
-    final response = await _http.get(
-      Uri.parse('$apiBaseUrl/api/v1/users/volunteers'),
-      headers: _headers,
+    final response = await _withTimeout(
+      _http.get(
+        Uri.parse('$apiBaseUrl/api/v1/users/volunteers'),
+        headers: _headers,
+      ),
     );
     return (await _decode(response) as List).cast<Map<String, dynamic>>();
   }
 
   Future<Map<String, dynamic>> assignCase(
       String caseId, String volunteerId) async {
-    final response = await _http.post(
-      Uri.parse('$apiBaseUrl/api/v1/cases/$caseId/assign'),
-      headers: _headers,
-      body: jsonEncode({'volunteer_id': volunteerId}),
+    final response = await _withTimeout(
+      _http.post(
+        Uri.parse('$apiBaseUrl/api/v1/cases/$caseId/assign'),
+        headers: _headers,
+        body: jsonEncode({'volunteer_id': volunteerId}),
+      ),
     );
     return await _decode(response) as Map<String, dynamic>;
   }
@@ -142,13 +169,15 @@ class ApiClient {
     String status,
     int expectedVersion,
   ) async {
-    final response = await _http.patch(
-      Uri.parse('$apiBaseUrl/api/v1/cases/$caseId/status'),
-      headers: _headers,
-      body: jsonEncode({
-        'status': status,
-        'expected_version': expectedVersion,
-      }),
+    final response = await _withTimeout(
+      _http.patch(
+        Uri.parse('$apiBaseUrl/api/v1/cases/$caseId/status'),
+        headers: _headers,
+        body: jsonEncode({
+          'status': status,
+          'expected_version': expectedVersion,
+        }),
+      ),
     );
     return await _decode(response) as Map<String, dynamic>;
   }
