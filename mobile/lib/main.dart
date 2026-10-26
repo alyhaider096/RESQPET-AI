@@ -6,6 +6,7 @@ import 'package:image_picker/image_picker.dart';
 
 import 'api_client.dart';
 import 'care_screen.dart';
+import 'assistant_screen.dart';
 import 'rescue_map.dart';
 
 const ink = Color(0xFF18263B);
@@ -498,6 +499,13 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         actions: [
+          IconButton(
+            tooltip: 'Ask ResQ',
+            icon: const Icon(Icons.auto_awesome_outlined),
+            onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => AssistantScreen(api: widget.api),
+            )),
+          ),
           IconButton(
             tooltip: 'Vet and animal care',
             icon: const Icon(Icons.medical_services_outlined),

@@ -86,12 +86,22 @@ class ApiClient {
         'The rescue server took too long to respond. Please try again.',
         408,
       );
+    } on http.ClientException {
+      throw ApiException(
+          'Cannot reach the rescue server. Check your connection and the demo server address.',
+          503);
     }
   }
 
   Future<dynamic> _decode(http.Response response) async {
-    final dynamic body =
-        response.body.isEmpty ? null : jsonDecode(response.body);
+    dynamic body;
+    try {
+      body = response.body.isEmpty ? null : jsonDecode(response.body);
+    } on FormatException {
+      throw ApiException(
+          'The demo server is unavailable. Check the server connection and try again.',
+          response.statusCode >= 400 ? response.statusCode : 502);
+    }
     if (response.statusCode < 200 || response.statusCode >= 300) {
       Object? detail;
       if (body is Map<String, dynamic>) {
@@ -244,6 +254,15 @@ class ApiClient {
   Future<void> logout() async {
     _token = null;
     await _storage.delete(key: 'access_token');
+  }
+
+  Future<String> askAssistant(List<Map<String, String>> messages) async {
+    final response = await _withTimeout(_http.post(
+      Uri.parse('$_baseUrl/api/v1/assistant/chat'),
+      headers: _headers,
+      body: jsonEncode({'messages': messages}),
+    ));
+    return (await _decode(response) as Map<String, dynamic>)['reply'] as String;
   }
 
   Future<List<Map<String, dynamic>>> getCare(String resource) async {

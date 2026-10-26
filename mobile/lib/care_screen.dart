@@ -13,6 +13,20 @@ class _CareScreenState extends State<CareScreen> {
   late Future<List<Map<String, dynamic>>> future =
       widget.api.getCare('consultations');
   bool busy = false;
+  void showGuide(String title, String text) {
+    showDialog<void>(
+        context: context,
+        builder: (_) => AlertDialog(
+              title: Text(title),
+              content: Text(text),
+              actions: [
+                TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Close')),
+              ],
+            ));
+  }
+
   void refresh() {
     if (mounted) {
       setState(() {
@@ -125,6 +139,21 @@ class _CareScreenState extends State<CareScreen> {
               padding: EdgeInsets.all(16),
               child: Text(
                   'Care for pets and farm animals: general health, vaccination, heat cycles and reproductive concerns. Requests are reviewed by a veterinarian. This demo does not provide automated diagnoses or medication advice.')),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Wrap(spacing: 8, children: [
+              ActionChip(
+                  avatar: const Icon(Icons.vaccines_outlined),
+                  label: const Text('Vaccination'),
+                  onPressed: () => showGuide('Vaccination care',
+                      'Keep any previous vaccination record and your animal’s age ready. Use Request care and choose Vaccination to ask a veterinarian about a suitable plan for this species. The app does not calculate vaccine schedules.')),
+              ActionChip(
+                  avatar: const Icon(Icons.restaurant_outlined),
+                  label: const Text('Food guide'),
+                  onPressed: () => showGuide('Food and nutrition',
+                      'Food needs vary by species, age and condition. Use Ask ResQ for general guidance, or Request care for a veterinarian’s advice. Include the animal’s usual feed and any recent change in appetite.')),
+            ]),
+          ),
           Expanded(
               child: FutureBuilder<List<Map<String, dynamic>>>(
                   future: future,

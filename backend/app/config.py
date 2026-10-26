@@ -45,6 +45,11 @@ class Settings(BaseSettings):
     VAPI_ASSISTANT_ID: str | None = None
     VAPI_TOOL_SECRET: str = "development-only-vapi-secret-change-before-demo"
 
+    # Server-side demo assistant. Never embed this key in mobile builds.
+    OPENAI_API_KEY: str | None = None
+    OPENAI_MODEL: str = "gpt-4.1-mini"
+    AI_DEMO_REQUEST_LIMIT: int = 50
+
     # Rate Limiting
     RATE_LIMIT_PER_MINUTE: int = 60
     RATE_LIMIT_BURST: int = 10

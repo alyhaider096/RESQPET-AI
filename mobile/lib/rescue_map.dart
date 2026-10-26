@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
@@ -190,6 +191,19 @@ class RescueMapScreen extends StatefulWidget {
 }
 
 class _RescueMapScreenState extends State<RescueMapScreen> {
+  Timer? timer;
+  @override
+  void initState() {
+    super.initState();
+    timer = Timer.periodic(const Duration(seconds: 15), (_) => refresh());
+  }
+
+  @override
+  void dispose() {
+    timer?.cancel();
+    super.dispose();
+  }
+
   late Future<List<Map<String, dynamic>>> future = widget.api.getMapCases();
   void refresh() {
     setState(() {
@@ -221,7 +235,7 @@ class _RescueMapScreenState extends State<RescueMapScreen> {
                     padding: const EdgeInsets.all(12),
                     child: Text(snapshot.data!.isEmpty
                         ? 'No active reports have a paw location yet. Add a location to your next report.'
-                        : '${snapshot.data!.length} active rescue paws · Tap a paw for details')),
+                        : '${snapshot.data!.length} active rescue paws · Updates every 15 seconds · Tap for details')),
                 Expanded(child: PawMap(points: snapshot.data!)),
               ]);
             }),

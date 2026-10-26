@@ -258,20 +258,33 @@ fallback are planned. They are not part of the implemented demo.
 The ARM64 release-mode APK uses the development signing key. The hackathon demo
 backend runs on a laptop through a free Cloudflare HTTPS tunnel; keep PostgreSQL,
 FastAPI, and the tunnel running. A tunnel restart may change the hostname and
-require updating Vapi and rebuilding the APK.
+require updating Vapi and the login screen's configurable server address.
 
 The Vapi dashboard conversation created a rescue case successfully. Incoming
 PSTN calling remains unverified; the free US number cannot place international
 outbound calls. Voice usage consumes provider credits separately from number allocation.
 
-Backend validation: 23 tests passed, 85.96% coverage. Flutter analysis and two widget
-tests passed, including coordinator verification/refresh regression coverage.
+Backend validation: 24 tests passed, 85.70% coverage. Flutter analysis and four
+tests passed, including coordinator verification and unavailable-server regressions.
 
 The app's top bar provides Rescue paw map and Vet and animal care buttons.
 Reporters see organization rescue pins without reporter contact details.
 Veterinarians manage appointments assigned to them. This records requests,
 schedules, and follow-up notes; video calls, automatic diagnosis, prescriptions,
-breeding-partner matching, and an in-app generative chatbot are not implemented.
+breeding-partner matching are not implemented. Ask ResQ provides general care and
+app-navigation chat through the backend's OpenAI Responses integration. Set
+`OPENAI_API_KEY` privately in `.env`; never add it to Flutter or Git. Chat requires
+login, caps input/output and has a 50-request allowance per backend process for the
+demo (`AI_DEMO_REQUEST_LIMIT`). Provider credits are required; chat cannot create
+cases, make appointments, diagnose or prescribe. The care screen also includes
+vaccination and food-guide entry points. Rescue paw markers refresh every 15 seconds
+while the map is open.
+
+For a USB phone demo, run `adb reverse tcp:8000 tcp:8000` and set **Demo server
+connection** on the login screen to `http://127.0.0.1:8000`. Keep the laptop API and
+USB connection running. An expired public tunnel now produces a readable server
+error instead of a raw JSON FormatException. Authentication uses backend JWTs;
+Firebase authentication is not used.
 
 ---
 
