@@ -22,12 +22,48 @@ void main() {
     ))));
     await tester.pump();
     await tester.tap(find.text('Verify'));
+    await tester.pumpAndSettle();
+    expect(find.text('Review rescue report'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Confirm verification'), 400,
+        scrollable: find.byType(Scrollable).last);
+    await tester.tap(find.text('Confirm verification'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 150));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     expect(api.verified, isTrue);
     expect(find.text('Assign'), findsOneWidget);
+  });
+  testWidgets('coordinator selects a volunteer before assignment',
+      (tester) async {
+    final api = VerifyTestApi()..verified = true;
+    await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+            body: CasesPanel(
+                api: api,
+                session: const Session(
+                    token: 'test',
+                    userId: 'coordinator',
+                    email: 'test@example.test',
+                    fullName: 'Coordinator',
+                    role: 'ngo_coordinator',
+                    organizationId: 'org')))));
+    await tester.pump();
+    await tester.tap(find.text('Assign'));
+    await tester.pumpAndSettle();
+    expect(find.text('Assign rescue team'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Choose a rescue volunteer'), 400,
+        scrollable: find.byType(Scrollable).last);
+    await tester.tap(find.byType(DropdownButtonFormField<String>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Volunteer Two').last);
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('Confirm assignment'), 100,
+        scrollable: find.byType(Scrollable).last);
+    await tester.tap(find.text('Confirm assignment'));
+    await tester.pumpAndSettle();
+    expect(api.assignedId, 'volunteer-two');
+    expect(tester.takeException(), isNull);
   });
   testWidgets('shows branded splash then login screen', (tester) async {
     await tester.pumpWidget(const ResQPetApp());
@@ -42,6 +78,19 @@ void main() {
 
 class VerifyTestApi extends ApiClient {
   bool verified = false;
+  String? assignedId;
+  @override
+  Future<List<Map<String, dynamic>>> getVolunteers() async => [
+        {'id': 'volunteer-one', 'full_name': 'Volunteer One'},
+        {'id': 'volunteer-two', 'full_name': 'Volunteer Two'},
+      ];
+  @override
+  Future<Map<String, dynamic>> assignCase(
+      String caseId, String volunteerId) async {
+    assignedId = volunteerId;
+    return (await getCases()).first;
+  }
+
   @override
   Future<List<Map<String, dynamic>>> getCases() async => [
         {

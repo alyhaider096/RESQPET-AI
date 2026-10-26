@@ -14,6 +14,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+from app.adoption import router as adoption_router
 from app.api import router as api_router
 from app.assistant import router as assistant_router
 from app.care import router as care_router
@@ -69,6 +70,7 @@ app.add_middleware(
 
 app.include_router(api_router)
 app.include_router(care_router)
+app.include_router(adoption_router)
 app.include_router(assistant_router)
 
 

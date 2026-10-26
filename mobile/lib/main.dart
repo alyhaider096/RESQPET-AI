@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
@@ -8,6 +9,8 @@ import 'api_client.dart';
 import 'care_screen.dart';
 import 'assistant_screen.dart';
 import 'rescue_map.dart';
+import 'case_detail_screen.dart';
+import 'adoption_screen.dart';
 
 const ink = Color(0xFF18263B);
 const rescueGreen = Color(0xFF16B89D);
@@ -540,6 +543,14 @@ class _HomeScreenState extends State<HomeScreen> {
             session: widget.session,
             onReport: openReport,
             onCases: () => selectDestination(1),
+            onMap: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => RescueMapScreen(api: widget.api))),
+            onCare: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) =>
+                    CareScreen(api: widget.api, session: widget.session))),
+            onAdoption: () => Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) =>
+                    AdoptionScreen(api: widget.api, session: widget.session))),
           ),
           CasesPanel(
             key: casesKey,
@@ -604,11 +615,17 @@ class DashboardTab extends StatelessWidget {
     required this.session,
     required this.onReport,
     required this.onCases,
+    required this.onMap,
+    required this.onCare,
+    required this.onAdoption,
     super.key,
   });
   final Session session;
   final VoidCallback onReport;
   final VoidCallback onCases;
+  final VoidCallback onMap;
+  final VoidCallback onCare;
+  final VoidCallback onAdoption;
 
   @override
   Widget build(BuildContext context) => ListView(
@@ -678,7 +695,30 @@ class DashboardTab extends StatelessWidget {
             onTap: onCases,
           ),
           const SizedBox(height: 12),
-          const ComingSoonCard(),
+          FeatureCard(
+              icon: Icons.near_me_outlined,
+              color: softSky,
+              title: 'Rescues near me',
+              subtitle: 'Find animal paw reports and filter by distance.',
+              onTap: onMap),
+          const SizedBox(height: 12),
+          FeatureCard(
+              icon: Icons.medical_services_outlined,
+              color: rescueGreen,
+              title: session.role == 'veterinarian'
+                  ? 'My veterinary consultations'
+                  : 'Expert veterinary care',
+              subtitle:
+                  'Connect pets and farm animals with a veterinarian. Follow appointments and care notes.',
+              onTap: onCare),
+          const SizedBox(height: 12),
+          FeatureCard(
+              icon: Icons.favorite_outline,
+              color: rescueCoral,
+              title: 'Adoption & new beginnings',
+              subtitle:
+                  'Meet rescued animals, apply to adopt or manage placements.',
+              onTap: onAdoption),
           const SizedBox(height: 20),
           const AnimalStrip(),
         ],
@@ -1050,6 +1090,8 @@ String roleLabel(String role) => switch (role) {
       'rescue_volunteer' => 'Rescue volunteer',
       'system_admin' => 'System administrator',
       'public_reporter' => 'Citizen reporter',
+      'owner' => 'Pet owner / farmer',
+      'veterinarian' => 'Veterinarian',
       _ => role.replaceAll('_', ' '),
     };
 
@@ -1429,6 +1471,39 @@ class CasesPanel extends StatefulWidget {
 }
 
 class _CasesPanelState extends State<CasesPanel> {
+  Timer? syncTimer;
+  bool syncing = false;
+  @override
+  void initState() {
+    super.initState();
+    syncTimer = Timer.periodic(const Duration(seconds: 5), (_) async {
+      if (syncing ||
+          !mounted ||
+          WidgetsBinding.instance.lifecycleState == AppLifecycleState.paused) {
+        return;
+      }
+      syncing = true;
+      try {
+        final cases = await widget.api.getCases();
+        if (mounted) {
+          setState(() {
+            future = Future.value(cases);
+          });
+        }
+      } catch (_) {
+        // Keep the previous list during a temporary background refresh failure.
+      } finally {
+        syncing = false;
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    syncTimer?.cancel();
+    super.dispose();
+  }
+
   late Future<List<Map<String, dynamic>>> future = widget.api.getCases();
 
   Future<void> refresh() async {
@@ -1442,6 +1517,16 @@ class _CasesPanelState extends State<CasesPanel> {
 
   Future<void> act(Map<String, dynamic> item) async {
     try {
+      if ({'ngo_coordinator', 'system_admin'}.contains(widget.session.role)) {
+        await Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) => CaseDetailScreen(
+                api: widget.api,
+                session: widget.session,
+                initial: item,
+                review: true)));
+        if (mounted) await refresh();
+        return;
+      }
       await withRescueBuddy<void>(
         context,
         message: item['status'] == 'reported'
@@ -1449,21 +1534,7 @@ class _CasesPanelState extends State<CasesPanel> {
             : 'Alerting the rescue team…',
         animal: animalEmoji(item['species'] as String),
         action: () async {
-          if ({'ngo_coordinator', 'system_admin'}
-              .contains(widget.session.role)) {
-            if (item['status'] == 'reported') {
-              await widget.api.verifyCase(item['id'] as String);
-            } else if (item['status'] == 'verified') {
-              final volunteers = await widget.api.getVolunteers();
-              if (volunteers.isEmpty) {
-                throw ApiException('No volunteer is available', 422);
-              }
-              await widget.api.assignCase(
-                item['id'] as String,
-                volunteers.first['id'] as String,
-              );
-            }
-          } else if (widget.session.role == 'rescue_volunteer') {
+          if (widget.session.role == 'rescue_volunteer') {
             final next = {
               'assigned': 'accepted',
               'accepted': 'en_route',
@@ -1496,7 +1567,8 @@ class _CasesPanelState extends State<CasesPanel> {
       FutureBuilder<List<Map<String, dynamic>>>(
         future: future,
         builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
+          if (snapshot.connectionState != ConnectionState.done &&
+              !snapshot.hasData) {
             return const LoadingBuddy(
               message: 'Sniffing out rescue updates…',
               animal: '🐈',
@@ -1564,6 +1636,11 @@ class CaseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
+          child: InkWell(
+        borderRadius: BorderRadius.circular(20),
+        onTap: () => Navigator.of(context).push(MaterialPageRoute(
+            builder: (_) =>
+                CaseDetailScreen(api: api, session: session, initial: item))),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -1658,7 +1735,7 @@ class CaseCard extends StatelessWidget {
             ],
           ),
         ),
-      );
+      ));
 }
 
 class PriorityBadge extends StatelessWidget {

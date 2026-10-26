@@ -191,6 +191,9 @@ class RescueMapScreen extends StatefulWidget {
 }
 
 class _RescueMapScreenState extends State<RescueMapScreen> {
+  LatLng? nearby;
+  double radiusKm = 10;
+  bool locating = false;
   Timer? timer;
   @override
   void initState() {
@@ -230,13 +233,72 @@ class _RescueMapScreenState extends State<RescueMapScreen> {
               if (!snapshot.hasData) {
                 return const Center(child: CircularProgressIndicator());
               }
+              final points = snapshot.data!
+                  .where((p) =>
+                      nearby == null ||
+                      const Distance().as(
+                              LengthUnit.Kilometer,
+                              nearby!,
+                              LatLng((p['latitude'] as num).toDouble(),
+                                  (p['longitude'] as num).toDouble())) <=
+                          radiusKm)
+                  .toList();
               return Column(children: [
                 Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Wrap(
+                        spacing: 8,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          ActionChip(
+                              avatar: const Icon(Icons.near_me_outlined),
+                              label: Text(locating
+                                  ? 'Finding you…'
+                                  : 'Use my location'),
+                              onPressed: locating
+                                  ? null
+                                  : () async {
+                                      setState(() => locating = true);
+                                      try {
+                                        final point = await locateAnimal();
+                                        if (mounted) {
+                                          setState(() => nearby = point);
+                                        }
+                                      } catch (e) {
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(SnackBar(
+                                                  content: Text('$e')));
+                                        }
+                                      } finally {
+                                        if (mounted) {
+                                          setState(() => locating = false);
+                                        }
+                                      }
+                                    }),
+                          if (nearby != null) ...[
+                            DropdownButton<double>(
+                                value: radiusKm,
+                                items: [5.0, 10.0, 25.0, 50.0]
+                                    .map((r) => DropdownMenuItem(
+                                        value: r,
+                                        child: Text('Within ${r.toInt()} km')))
+                                    .toList(),
+                                onChanged: (r) =>
+                                    setState(() => radiusKm = r!)),
+                            TextButton(
+                                onPressed: () => setState(() => nearby = null),
+                                child: const Text('Show all')),
+                          ],
+                        ])),
+                Padding(
                     padding: const EdgeInsets.all(12),
-                    child: Text(snapshot.data!.isEmpty
+                    child: Text(points.isEmpty
                         ? 'No active reports have a paw location yet. Add a location to your next report.'
-                        : '${snapshot.data!.length} active rescue paws · Updates every 15 seconds · Tap for details')),
-                Expanded(child: PawMap(points: snapshot.data!)),
+                        : '${points.length} active rescue paws · Updates every 15 seconds · Tap for details')),
+                Expanded(
+                    child: PawMap(
+                        key: ValueKey('$nearby-$radiusKm'), points: points)),
               ]);
             }),
       );

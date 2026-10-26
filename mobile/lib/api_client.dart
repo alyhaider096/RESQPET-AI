@@ -159,6 +159,35 @@ class ApiClient {
     return (await _decode(response) as List).cast<Map<String, dynamic>>();
   }
 
+  Future<Map<String, dynamic>> getCase(String id) async {
+    return await _decode(await _withTimeout(_http.get(
+        Uri.parse('$_baseUrl/api/v1/cases/$id'),
+        headers: _headers))) as Map<String, dynamic>;
+  }
+
+  Future<void> setCaseLocation(
+      String id, double latitude, double longitude) async {
+    await _decode(await _withTimeout(_http.patch(
+        Uri.parse('$_baseUrl/api/v1/cases/$id/location'),
+        headers: _headers,
+        body: jsonEncode({'latitude': latitude, 'longitude': longitude}))));
+  }
+
+  Future<List<Map<String, dynamic>>> getAdoption(String resource) async {
+    return (await _decode(await _withTimeout(_http.get(
+            Uri.parse('$_baseUrl/api/v1/adoption/$resource'),
+            headers: _headers))) as List)
+        .cast<Map<String, dynamic>>();
+  }
+
+  Future<void> adoptionAction(String resource, Map<String, dynamic> data,
+      {bool patch = false}) async {
+    final uri = Uri.parse('$_baseUrl/api/v1/adoption/$resource');
+    await _decode(await _withTimeout(patch
+        ? _http.patch(uri, headers: _headers, body: jsonEncode(data))
+        : _http.post(uri, headers: _headers, body: jsonEncode(data))));
+  }
+
   Future<Map<String, dynamic>> createCase(Map<String, dynamic> data) async {
     final response = await _withTimeout(
       _http.post(

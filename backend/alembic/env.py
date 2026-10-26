@@ -16,6 +16,7 @@ from alembic import context
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
 from app import (
+    adoption,  # noqa: F401 - register adoption metadata
     care,  # noqa: F401 - register consultation metadata
     models,  # noqa: F401 - register SQLAlchemy metadata
 )

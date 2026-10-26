@@ -15,7 +15,7 @@ from fastapi import (
     WebSocket,
     WebSocketDisconnect,
 )
-from pydantic import ValidationError
+from pydantic import BaseModel, Field, ValidationError
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
@@ -237,6 +237,30 @@ def get_case(case_id: str, db: Session = Depends(get_db), user: User = Depends(g
     if not case:
         raise HTTPException(status_code=404, detail="Case not found")
     ensure_case_access(case, user)
+    return case
+
+
+class LocationUpdate(BaseModel):
+    latitude: float = Field(ge=-90, le=90)
+    longitude: float = Field(ge=-180, le=180)
+
+
+@router.patch("/cases/{case_id}/location", response_model=RescueCaseRead, tags=["rescue"])
+async def set_case_location(case_id: str, data: LocationUpdate,
+    db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    case = db.get(RescueCase, case_id)
+    if not case:
+        raise HTTPException(404, "Case not found")
+    ensure_case_access(case, user)
+    if user.role not in {Role.NGO_COORDINATOR.value, Role.SYSTEM_ADMIN.value}:
+        raise HTTPException(403, "Only a coordinator or admin can confirm a rescue location")
+    case.latitude, case.longitude = str(data.latitude), str(data.longitude)
+    case.version += 1
+    db.add(CaseEvent(case_id=case.id, actor_user_id=user.id, event_type="case.location_confirmed",
+        reason="Coordinator placed a rescue location on the map"))
+    db.commit()
+    db.refresh(case)
+    await manager.broadcast(case.organization_id, public_event("case.updated", case))
     return case
 
 

@@ -18,13 +18,16 @@ ResQ Pet AI is an open-source animal welfare coordination platform connecting ci
 #### ✅ Implemented hackathon MVP
 - 📁 **Project Structure** - Monorepo with backend, mobile, ml, docs, infra
 - 🛠️ **Rescue API** - FastAPI case creation, verification, assignment, and tracked status transitions
-- 🔐 **Role-Based Login** - Admin, NGO coordinator, rescue volunteer, and public reporter roles
+- 🔐 **Role-Based Login** - Admin, NGO coordinator, rescue volunteer, citizen reporter, owner/farmer and veterinarian
 - 🗄️ **Database Setup** - PostgreSQL/SQLite support with SQLAlchemy and Alembic migration
 - 📞 **Vapi-Ready Intake** - Authenticated native tool-call webhook with retry-safe case creation
 - 📱 **Flutter MVP** - Login, citizen reporting, NGO operations, and volunteer status flow
 - 🗺️ **Rescue Paw Map** - GPS or tap-to-place locations and organization-scoped active rescue markers
 - 📷 **Rescue Photos** - Camera/gallery reporting with authenticated photo storage and viewing
 - 🩺 **Vet Care Requests** - Owner/farmer requests, veterinarian scheduling, and follow-up notes
+- 🐾 **Adoption** - Rescued-animal listings, citizen applications, NGO decisions and confirmed placement handover
+- 📋 **Coordinator Review** - Case details, photo viewing, map-location confirmation and selected-volunteer assignment
+- 📍 **Nearby Discovery** - GPS-based distance filtering for organization rescue paws; case lists refresh every five seconds
 - 🐄 **Heat-Cycle Concerns** - Reproductive-health consultation requests for pets and livestock
 - 🎯 **Explainable Triage** - Critical/Urgent/Routine rules with recorded reasons
 - 🔄 **Real-Time Events** - Organization-scoped WebSocket case updates
@@ -35,14 +38,13 @@ ResQ Pet AI is an open-source animal welfare coordination platform connecting ci
 - ☁️ **Render Blueprint** - Reproducible HTTPS API and PostgreSQL demo deployment
 - 🧪 **Automated Checks** - Backend API tests, coverage, Ruff, Flutter analysis, and widget test
 
-#### 🔌 Needs deployment credentials
+#### 🔌 Demo deployment status
 
-- A public HTTPS backend URL
-- A Vapi assistant, phone number, and tool secret configured from `docs/VAPI_SETUP.md`
-- Production secrets and PostgreSQL credentials
+- Local PostgreSQL and FastAPI are running; the Android demo uses USB port forwarding.
+- A temporary HTTPS tunnel connects Vapi. A real inbound call created F-8 case `RQP-261026-CC6FDF`.
+- Vapi assistant, inbound number and private tool credential are configured. Permanent hosting remains future work.
 
 #### 📅 Planned (P1/P2 - Post-Hackathon)
-- 🐾 **Adoption System** - Recovered animal listing and applications
 - 📊 **Longitudinal Health Records** - Vaccination history and herd tracking
 - 🤖 **ML Triage Model** - Machine learning enhancement (after rule-based system)
 
@@ -260,12 +262,18 @@ backend runs on a laptop through a free Cloudflare HTTPS tunnel; keep PostgreSQL
 FastAPI, and the tunnel running. A tunnel restart may change the hostname and
 require updating Vapi and the login screen's configurable server address.
 
-The Vapi dashboard conversation created a rescue case successfully. Incoming
-PSTN calling remains unverified; the free US number cannot place international
-outbound calls. Voice usage consumes provider credits separately from number allocation.
+Both dashboard voice intake and a real inbound phone call created rescue cases.
+Vapi call `01a1790a-6ec3-7002-b3e8-0dc219f08d5b` matches the F-8 cat report
+`RQP-261026-CC6FDF` in PostgreSQL. The published assistant has English/Urdu
+instructions and automatic voice/transcriber language detection. A dedicated Urdu
+voice-quality test remains pending. General animal-care questions are supported by
+instructions; diagnosis, prescriptions, voice appointment booking and case lookup
+are not implemented. Voice usage consumes provider credits.
 
-Backend validation: 24 tests passed, 85.70% coverage. Flutter analysis and four
-tests passed, including coordinator verification and unavailable-server regressions.
+Backend validation: 27 tests passed, 87.25% coverage. Flutter analysis and five
+tests passed, including coordinator review, selected-volunteer assignment and
+unavailable-server regressions. PostgreSQL adoption smoke testing covered rescue,
+listing, application, approval and handover. All demo animals are labeled synthetic.
 
 The app's top bar provides Rescue paw map and Vet and animal care buttons.
 Reporters see organization rescue pins without reporter contact details.
@@ -278,7 +286,11 @@ login, caps input/output and has a 50-request allowance per backend process for 
 demo (`AI_DEMO_REQUEST_LIMIT`). Provider credits are required; chat cannot create
 cases, make appointments, diagnose or prescribe. The care screen also includes
 vaccination and food-guide entry points. Rescue paw markers refresh every 15 seconds
-while the map is open.
+while the map is open. Case lists refresh every five seconds. Voice intake saves
+the spoken area; it does not supply GPS or a photo. A coordinator can open the case
+and place a confirmed paw location. Each case card opens condition, photo, location,
+priority and history details. Nearby filtering uses the device's location only
+after the user requests it.
 
 For a USB phone demo, run `adb reverse tcp:8000 tcp:8000` and set **Demo server
 connection** on the login screen to `http://127.0.0.1:8000`. Keep the laptop API and
