@@ -1,8 +1,12 @@
 import 'dart:math' as math;
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'api_client.dart';
+import 'care_screen.dart';
+import 'rescue_map.dart';
 
 const ink = Color(0xFF18263B);
 const rescueGreen = Color(0xFF16B89D);
@@ -275,6 +279,49 @@ class _LoginScreenState extends State<LoginScreen> {
   bool hidePassword = true;
   String? error;
 
+  @override
+  void initState() {
+    super.initState();
+    widget.api.restoreBackendUrl().catchError((Object _) {});
+  }
+
+  Future<void> configureBackend() async {
+    final address = TextEditingController(text: widget.api.backendUrl);
+    final result = await showDialog<String>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+              title: const Text('Demo server connection'),
+              content: Column(mainAxisSize: MainAxisSize.min, children: [
+                const Text(
+                    'Use the HTTPS address supplied by your demo operator. Only use a server you trust; login details are sent there.'),
+                const SizedBox(height: 12),
+                TextField(
+                    controller: address,
+                    decoration:
+                        const InputDecoration(labelText: 'Backend HTTPS URL')),
+              ]),
+              actions: [
+                TextButton(
+                    onPressed: () => Navigator.pop(dialogContext),
+                    child: const Text('Cancel')),
+                FilledButton(
+                    onPressed: () => Navigator.pop(dialogContext, address.text),
+                    child: const Text('Save'))
+              ],
+            ));
+    address.dispose();
+    if (result == null) return;
+    try {
+      await widget.api.setBackendUrl(result);
+    } catch (exception) {
+      if (mounted) {
+        setState(() {
+          error = exception.toString();
+        });
+      }
+    }
+  }
+
   Future<void> submit() async {
     setState(() {
       loading = true;
@@ -400,6 +447,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 18),
                         const AnimalStrip(),
+                        TextButton.icon(
+                            onPressed: configureBackend,
+                            icon: const Icon(Icons.settings_ethernet),
+                            label: const Text('Demo server connection')),
                       ],
                     ),
                   ),
@@ -446,6 +497,23 @@ class _HomeScreenState extends State<HomeScreen> {
     final titles = ['Home', casesLabel(widget.session.role), 'Profile'];
     return Scaffold(
       appBar: AppBar(
+        actions: [
+          IconButton(
+            tooltip: 'Vet and animal care',
+            icon: const Icon(Icons.medical_services_outlined),
+            onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) =>
+                  CareScreen(api: widget.api, session: widget.session),
+            )),
+          ),
+          IconButton(
+            tooltip: 'Rescue paw map',
+            icon: const Icon(Icons.map_outlined),
+            onPressed: () => Navigator.of(context).push(MaterialPageRoute(
+              builder: (_) => RescueMapScreen(api: widget.api),
+            )),
+          )
+        ],
         title: Row(
           children: [
             Image.asset('assets/images/logo.png.png', width: 38, height: 38),
@@ -999,6 +1067,32 @@ class _ReportScreenState extends State<ReportScreen> {
   String breathing = 'no';
   String danger = 'none';
   bool loading = false;
+  double? animalLatitude;
+  double? animalLongitude;
+  Uint8List? animalPhoto;
+  String? photoWarning;
+
+  Future<void> pickPhoto(ImageSource source) async {
+    try {
+      final picked = await ImagePicker()
+          .pickImage(source: source, maxWidth: 1280, imageQuality: 75);
+      if (picked == null) return;
+      final bytes = await picked.readAsBytes();
+      if (bytes.length > 5 * 1024 * 1024) {
+        throw Exception('Choose a photo smaller than 5 MB.');
+      }
+      if (mounted) {
+        setState(() {
+          animalPhoto = bytes;
+        });
+      }
+    } catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('$error')));
+      }
+    }
+  }
 
   Future<void> submit() async {
     if (!(formKey.currentState?.validate() ?? false)) return;
@@ -1008,20 +1102,33 @@ class _ReportScreenState extends State<ReportScreen> {
         context,
         message: 'Calling the rescue pack…',
         animal: species == 'cat' ? '🐈' : '🐕',
-        action: () => widget.api.createCase({
-          'organization_id': widget.session.organizationId,
-          'species': species,
-          'visible_condition': condition.text.trim(),
-          'consciousness': consciousness,
-          'bleeding': bleeding,
-          'mobility': mobility,
-          'breathing_difficulty': breathing,
-          'surrounding_danger': danger,
-          'district': district.text.trim(),
-          'village': village.text.trim().isEmpty ? null : village.text.trim(),
-          'landmark':
-              landmark.text.trim().isEmpty ? null : landmark.text.trim(),
-        }),
+        action: () async {
+          final item = await widget.api.createCase({
+            'organization_id': widget.session.organizationId,
+            'species': species,
+            'visible_condition': condition.text.trim(),
+            'consciousness': consciousness,
+            'bleeding': bleeding,
+            'mobility': mobility,
+            'breathing_difficulty': breathing,
+            'surrounding_danger': danger,
+            'district': district.text.trim(),
+            'latitude': animalLatitude,
+            'longitude': animalLongitude,
+            'village': village.text.trim().isEmpty ? null : village.text.trim(),
+            'landmark':
+                landmark.text.trim().isEmpty ? null : landmark.text.trim(),
+          });
+          if (animalPhoto != null) {
+            try {
+              await widget.api.uploadPhoto(item['id'] as String, animalPhoto!);
+            } catch (_) {
+              photoWarning =
+                  'Your report was saved, but its photo could not upload. Please contact the coordinator with your case reference.';
+            }
+          }
+          return item;
+        },
       );
       if (!mounted) return;
       await showDialog<void>(
@@ -1051,6 +1158,8 @@ class _ReportScreenState extends State<ReportScreen> {
                 'Great job, hero! An NGO coordinator can now verify and assign this case.',
                 textAlign: TextAlign.center,
               ),
+              if (photoWarning != null)
+                Text(photoWarning!, style: const TextStyle(color: rescueCoral)),
             ],
           ),
           actions: [
@@ -1113,6 +1222,23 @@ class _ReportScreenState extends State<ReportScreen> {
                 title: 'Animal and condition',
                 icon: Icons.pets_rounded,
                 children: [
+                  Wrap(spacing: 8, children: [
+                    OutlinedButton.icon(
+                        onPressed: () => pickPhoto(ImageSource.camera),
+                        icon: const Icon(Icons.camera_alt_outlined),
+                        label: const Text('Camera')),
+                    OutlinedButton.icon(
+                        onPressed: () => pickPhoto(ImageSource.gallery),
+                        icon: const Icon(Icons.photo_library_outlined),
+                        label: const Text('Add photo')),
+                  ]),
+                  if (animalPhoto != null)
+                    Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: Image.memory(animalPhoto!,
+                                height: 160, fit: BoxFit.cover))),
                   drop(
                     'Animal type',
                     species,
@@ -1187,6 +1313,10 @@ class _ReportScreenState extends State<ReportScreen> {
                 title: 'Location',
                 icon: Icons.location_on_outlined,
                 children: [
+                  LocationPawPicker(onChanged: (point) {
+                    animalLatitude = point.latitude;
+                    animalLongitude = point.longitude;
+                  }),
                   TextFormField(
                     controller: district,
                     validator: (value) => (value?.trim().length ?? 0) < 2
@@ -1295,7 +1425,10 @@ class _CasesPanelState extends State<CasesPanel> {
 
   Future<void> refresh() async {
     final next = widget.api.getCases();
-    setState(() => future = next);
+    if (!mounted) return;
+    setState(() {
+      future = next;
+    });
     await next;
   }
 
@@ -1391,6 +1524,7 @@ class _CasesPanelState extends State<CasesPanel> {
               itemBuilder: (_, index) => CaseCard(
                 item: cases[index],
                 session: widget.session,
+                api: widget.api,
                 onAction: () => act(cases[index]),
               ),
             ),
@@ -1404,11 +1538,13 @@ class CaseCard extends StatelessWidget {
     required this.item,
     required this.session,
     required this.onAction,
+    required this.api,
     super.key,
   });
   final Map<String, dynamic> item;
   final Session session;
   final VoidCallback onAction;
+  final ApiClient api;
 
   bool get actionable =>
       ({'ngo_coordinator', 'system_admin'}.contains(session.role) &&
@@ -1463,6 +1599,24 @@ class CaseCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 14),
+              if ((item['photo_count'] as num? ?? 0) > 0)
+                FutureBuilder<Uint8List>(
+                    future: api.getPhoto(item['id'] as String),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData) {
+                        return ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: Image.memory(snapshot.data!,
+                                height: 170,
+                                width: double.infinity,
+                                fit: BoxFit.cover));
+                      }
+                      return Padding(
+                          padding: const EdgeInsets.all(8),
+                          child: Text(snapshot.hasError
+                              ? 'Photo unavailable — refresh to retry'
+                              : 'Loading rescue photo…'));
+                    }),
               Text(
                 item['visible_condition'] as String,
                 maxLines: 2,

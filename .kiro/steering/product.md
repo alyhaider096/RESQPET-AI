@@ -97,4 +97,4 @@ Production medical imaging, breeding-partner matching, native video calls, payme
 - Meaningful test coverage
 - Secure architecture (no exposed secrets)
 - Open-source ready (proper license, documentation)
-- Reuse transparency documented
+- Team contributions documented

@@ -57,6 +57,8 @@ class Settings(BaseSettings):
     # Admin Bootstrap
     ADMIN_BOOTSTRAP_EMAIL: str = "admin@resqpet.ai"
     ADMIN_BOOTSTRAP_PASSWORD: str = "ChangeMeBeforeDemo123!"
+    DEMO_VET_PASSWORD: str | None = None
+    DEMO_OWNER_PASSWORD: str | None = None
 
     # WebSocket
     WS_HEARTBEAT_INTERVAL: int = 30

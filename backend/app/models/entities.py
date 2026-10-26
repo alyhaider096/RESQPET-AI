@@ -4,7 +4,7 @@ import enum
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import JSON, DateTime, ForeignKey, Index, String, Text, UniqueConstraint
+from sqlalchemy import JSON, DateTime, ForeignKey, Index, LargeBinary, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -103,6 +103,20 @@ class RescueCase(Base):
     events: Mapped[list["CaseEvent"]] = relationship(
         back_populates="case", cascade="all, delete-orphan", order_by="CaseEvent.created_at"
     )
+    photos: Mapped[list["CasePhoto"]] = relationship(cascade="all, delete-orphan")
+
+    @property
+    def photo_count(self) -> int:
+        return len(self.photos)
+
+
+class CasePhoto(Base):
+    __tablename__ = "case_photos"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uuid4_str)
+    case_id: Mapped[str] = mapped_column(ForeignKey("rescue_cases.id", ondelete="CASCADE"), unique=True)
+    content_type: Mapped[str] = mapped_column(String(40))
+    data: Mapped[bytes] = mapped_column(LargeBinary, deferred=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
 
 class CaseEvent(Base):

@@ -9,6 +9,16 @@
 
 ## Work Completed During Hackathon
 
+### Latest verified additions
+- [x] Fixed coordinator refresh returning a Future from setState; added widget regression coverage
+- [x] GPS/tap-to-place rescue paw map with sanitized organization-scoped pin API
+- [x] Camera/gallery image selection and authenticated photo upload/viewing
+- [x] Owner/farmer consultation requests and veterinarian scheduling/follow-up workflow
+- [x] Heat-cycle and reproductive-health concern categories
+- [x] Configurable demo backend URL on Android login screen
+- [x] Vapi dashboard conversation persisted a rescue case and returned its reference
+- [ ] Incoming PSTN call verification and permanent hosting
+
 ### Phase 1: Foundation
 - [x] Created monorepo structure and MIT License
 - [x] Created project and API documentation
@@ -40,7 +50,8 @@
 - [x] Implemented retry idempotency using authenticated Vapi call IDs
 - [x] Added direct and native-envelope integration tests
 - [x] Documented the function schema and assistant system prompt
-- [ ] Connect the Vapi account, public URL, assistant, and phone number
+- [x] Configure the Vapi account, public demo URL, assistant, and free US inbound number
+- [ ] Verify an incoming PSTN call (dashboard voice intake is verified)
 
 ### Phase 5: WebSocket Real-Time Updates
 - [x] Implemented JWT-authenticated `/api/v1/ws/cases`
@@ -56,10 +67,11 @@
 - [x] Added NGO verification and volunteer assignment workflow
 - [x] Added volunteer status transitions
 - [x] Added Android build configuration and widget smoke test
-- [ ] Offline drafts, media uploads, Urdu localization, and WebSocket refresh
+- [x] Photo reporting and location map
+- [ ] Offline drafts, video uploads, Urdu localization, and WebSocket refresh
 
 ### Phase 7: Testing & Documentation
-- [x] Backend lint and 9 automated tests
+- [x] Backend lint and 23 automated tests
 - [x] Flutter static analysis and widget test
 - [x] Migration and deterministic demo-seed verification
 - [x] Secret-pattern scan; no live provider credentials committed
@@ -85,8 +97,8 @@
 ## Testing Evidence
 
 ### Test Coverage
-- Backend: 12 tests passed; 84% statement coverage
-- Mobile: static analysis clean; widget smoke test passed
+- Backend: 23 tests passed; 85.96% statement coverage
+- Mobile: static analysis clean; splash/login and coordinator verification regression tests passed
 
 Performance benchmarks are intentionally not claimed until measured in the
 deployed demo environment.
@@ -146,9 +158,9 @@ All third-party libraries comply with their respective licenses.
 ## Post-Hackathon Roadmap
 
 Features explicitly NOT implemented during hackathon (P1/P2):
-- Veterinary consultation booking system
+- Video veterinary consultation system
 - Adoption listing and application workflow
-- Reproductive health records
+- Longitudinal reproductive-health records (consultation requests are implemented)
 - ML-based triage model training
 - Native video calls
 - Payment integration

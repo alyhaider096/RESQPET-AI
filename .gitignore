@@ -122,6 +122,9 @@ Thumbs.db
 credentials.json
 
 # Backup files
+.gradle-user/
+.build-tmp/
+.pub-cache/
 *.bak
 *.backup
 *~

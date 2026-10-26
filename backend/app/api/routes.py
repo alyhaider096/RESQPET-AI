@@ -4,7 +4,17 @@ import json
 import secrets
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, WebSocket, WebSocketDisconnect
+from fastapi import (
+    APIRouter,
+    Depends,
+    Header,
+    HTTPException,
+    Query,
+    Response,
+    UploadFile,
+    WebSocket,
+    WebSocketDisconnect,
+)
 from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -14,6 +24,7 @@ from app.config import settings
 from app.database import get_db
 from app.dependencies import get_current_user, require_roles
 from app.models import CaseAssignment, CaseEvent, CaseStatus, RescueCase, Role, User
+from app.models.entities import CasePhoto
 from app.privacy import encrypt_optional, hash_phone
 from app.realtime import manager
 from app.schemas import (
@@ -196,6 +207,30 @@ def list_cases(
     return list(db.scalars(query).unique())
 
 
+@router.get("/map/cases", tags=["rescue"])
+def map_cases(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """Share active rescue pins within an organization without reporter details."""
+    query = select(RescueCase).where(
+        RescueCase.latitude.is_not(None),
+        RescueCase.longitude.is_not(None),
+        RescueCase.status.not_in(["closed", "duplicate", "false_report"]),
+    )
+    if user.role != Role.SYSTEM_ADMIN.value:
+        query = query.where(RescueCase.organization_id == user.organization_id)
+    return [
+        {
+            "case_reference": case.case_reference,
+            "species": case.species,
+            "district": case.district,
+            "status": case.status,
+            "priority": case.priority,
+            "latitude": float(case.latitude),
+            "longitude": float(case.longitude),
+        }
+        for case in db.scalars(query.order_by(RescueCase.created_at.desc()).limit(200))
+    ]
+
+
 @router.get("/cases/{case_id}", response_model=RescueCaseRead, tags=["rescue"])
 def get_case(case_id: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
     case = db.get(RescueCase, case_id)
@@ -239,6 +274,57 @@ async def verify_case(
     db.refresh(case)
     await manager.broadcast(case.organization_id, public_event("case.updated", case))
     return case
+
+
+@router.post("/cases/{case_id}/photo", tags=["rescue"])
+async def upload_case_photo(
+    case_id: str, file: UploadFile, db: Session = Depends(get_db), user: User = Depends(get_current_user)
+):
+    case = db.get(RescueCase, case_id)
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+    ensure_case_access(case, user)
+    if (
+        user.role not in {Role.SYSTEM_ADMIN.value, Role.NGO_COORDINATOR.value}
+        and case.reporter_user_id != user.id
+    ):
+        raise HTTPException(status_code=403, detail="Only the reporter or coordinator can attach a photo")
+    content = await file.read(5 * 1024 * 1024 + 1)
+    if len(content) > 5 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="Photo must be at most 5 MB")
+    content_type = (
+        "image/jpeg"
+        if content.startswith(b"\xff\xd8\xff")
+        else "image/png"
+        if content.startswith(b"\x89PNG\r\n\x1a\n")
+        else None
+    )
+    if not content_type:
+        raise HTTPException(status_code=415, detail="Choose a JPEG or PNG photo")
+    photo = db.scalar(select(CasePhoto).where(CasePhoto.case_id == case_id))
+    if not photo:
+        photo = CasePhoto(case_id=case_id)
+        db.add(photo)
+    photo.data, photo.content_type = content, content_type
+    db.add(CaseEvent(case_id=case_id, actor_user_id=user.id, event_type="case.photo_added"))
+    db.commit()
+    return {"uploaded": True, "case_id": case_id}
+
+
+@router.get("/cases/{case_id}/photo", tags=["rescue"])
+def get_case_photo(case_id: str, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    case = db.get(RescueCase, case_id)
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+    ensure_case_access(case, user)
+    photo = db.scalar(select(CasePhoto).where(CasePhoto.case_id == case_id))
+    if not photo:
+        raise HTTPException(status_code=404, detail="No photo attached")
+    return Response(
+        content=photo.data,
+        media_type=photo.content_type,
+        headers={"Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff"},
+    )
 
 
 @router.post("/cases/{case_id}/assign", response_model=RescueCaseRead, tags=["rescue"])

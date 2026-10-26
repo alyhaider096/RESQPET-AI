@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
@@ -42,6 +43,34 @@ class ApiClient {
   final http.Client _http;
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   String? _token;
+  String _baseUrl = apiBaseUrl;
+  String get backendUrl => _baseUrl;
+
+  Future<void> restoreBackendUrl() async {
+    _baseUrl = await _storage.read(key: 'backend_url') ?? apiBaseUrl;
+  }
+
+  Future<void> setBackendUrl(String value) async {
+    final uri = Uri.tryParse(value.trim());
+    if (uri == null ||
+        uri.host.isEmpty ||
+        uri.userInfo.isNotEmpty ||
+        uri.hasQuery ||
+        uri.hasFragment ||
+        (uri.path.isNotEmpty && uri.path != '/') ||
+        !(uri.scheme == 'https' ||
+            (uri.scheme == 'http' &&
+                {'127.0.0.1', 'localhost', '10.0.2.2'}.contains(uri.host)))) {
+      throw ApiException(
+          'Enter an HTTPS backend origin, such as https://your-demo.trycloudflare.com',
+          422);
+    }
+    _baseUrl = uri.origin;
+    _token = null;
+    await _storage.delete(key: 'access_token');
+    await _storage.write(key: 'backend_url', value: _baseUrl);
+  }
+
   static const requestTimeout = Duration(seconds: 20);
 
   Map<String, String> get _headers => {
@@ -81,7 +110,7 @@ class ApiClient {
   Future<Session> login(String email, String password) async {
     final response = await _withTimeout(
       _http.post(
-        Uri.parse('$apiBaseUrl/api/v1/auth/login'),
+        Uri.parse('$_baseUrl/api/v1/auth/login'),
         headers: const {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email.trim(), 'password': password}),
       ),
@@ -103,7 +132,7 @@ class ApiClient {
   Future<Map<String, dynamic>> getMe() async {
     final response = await _withTimeout(
       _http.get(
-        Uri.parse('$apiBaseUrl/api/v1/auth/me'),
+        Uri.parse('$_baseUrl/api/v1/auth/me'),
         headers: _headers,
       ),
     );
@@ -113,7 +142,7 @@ class ApiClient {
   Future<List<Map<String, dynamic>>> getCases() async {
     final response = await _withTimeout(
       _http.get(
-        Uri.parse('$apiBaseUrl/api/v1/cases'),
+        Uri.parse('$_baseUrl/api/v1/cases'),
         headers: _headers,
       ),
     );
@@ -123,7 +152,7 @@ class ApiClient {
   Future<Map<String, dynamic>> createCase(Map<String, dynamic> data) async {
     final response = await _withTimeout(
       _http.post(
-        Uri.parse('$apiBaseUrl/api/v1/cases'),
+        Uri.parse('$_baseUrl/api/v1/cases'),
         headers: _headers,
         body: jsonEncode(data),
       ),
@@ -131,10 +160,40 @@ class ApiClient {
     return await _decode(response) as Map<String, dynamic>;
   }
 
+  Future<List<Map<String, dynamic>>> getMapCases() async {
+    final response = await _withTimeout(_http.get(
+      Uri.parse('$_baseUrl/api/v1/map/cases'),
+      headers: _headers,
+    ));
+    return (await _decode(response) as List).cast<Map<String, dynamic>>();
+  }
+
+  Future<void> uploadPhoto(String caseId, Uint8List bytes) async {
+    final request = http.MultipartRequest(
+        'POST', Uri.parse('$_baseUrl/api/v1/cases/$caseId/photo'));
+    request.headers['Authorization'] = 'Bearer $_token';
+    request.files.add(http.MultipartFile.fromBytes('file', bytes,
+        filename: 'rescue-photo.jpg'));
+    final response =
+        await _withTimeout(_http.send(request).then(http.Response.fromStream));
+    await _decode(response);
+  }
+
+  Future<Uint8List> getPhoto(String caseId) async {
+    final response = await _withTimeout(_http.get(
+      Uri.parse('$_baseUrl/api/v1/cases/$caseId/photo'),
+      headers: _headers,
+    ));
+    if (response.statusCode != 200) {
+      throw ApiException('Photo could not be loaded', response.statusCode);
+    }
+    return response.bodyBytes;
+  }
+
   Future<Map<String, dynamic>> verifyCase(String caseId) async {
     final response = await _withTimeout(
       _http.post(
-        Uri.parse('$apiBaseUrl/api/v1/cases/$caseId/verify'),
+        Uri.parse('$_baseUrl/api/v1/cases/$caseId/verify'),
         headers: _headers,
         body: '{}',
       ),
@@ -145,7 +204,7 @@ class ApiClient {
   Future<List<Map<String, dynamic>>> getVolunteers() async {
     final response = await _withTimeout(
       _http.get(
-        Uri.parse('$apiBaseUrl/api/v1/users/volunteers'),
+        Uri.parse('$_baseUrl/api/v1/users/volunteers'),
         headers: _headers,
       ),
     );
@@ -156,7 +215,7 @@ class ApiClient {
       String caseId, String volunteerId) async {
     final response = await _withTimeout(
       _http.post(
-        Uri.parse('$apiBaseUrl/api/v1/cases/$caseId/assign'),
+        Uri.parse('$_baseUrl/api/v1/cases/$caseId/assign'),
         headers: _headers,
         body: jsonEncode({'volunteer_id': volunteerId}),
       ),
@@ -171,7 +230,7 @@ class ApiClient {
   ) async {
     final response = await _withTimeout(
       _http.patch(
-        Uri.parse('$apiBaseUrl/api/v1/cases/$caseId/status'),
+        Uri.parse('$_baseUrl/api/v1/cases/$caseId/status'),
         headers: _headers,
         body: jsonEncode({
           'status': status,
@@ -185,5 +244,25 @@ class ApiClient {
   Future<void> logout() async {
     _token = null;
     await _storage.delete(key: 'access_token');
+  }
+
+  Future<List<Map<String, dynamic>>> getCare(String resource) async {
+    final response = await _withTimeout(_http
+        .get(Uri.parse('$_baseUrl/api/v1/care/$resource'), headers: _headers));
+    return (await _decode(response) as List).cast<Map<String, dynamic>>();
+  }
+
+  Future<void> requestConsultation(Map<String, dynamic> data) async {
+    await _decode(await _withTimeout(_http.post(
+        Uri.parse('$_baseUrl/api/v1/care/consultations'),
+        headers: _headers,
+        body: jsonEncode(data))));
+  }
+
+  Future<void> updateConsultation(String id, Map<String, dynamic> data) async {
+    await _decode(await _withTimeout(_http.patch(
+        Uri.parse('$_baseUrl/api/v1/care/consultations/$id'),
+        headers: _headers,
+        body: jsonEncode(data))));
   }
 }

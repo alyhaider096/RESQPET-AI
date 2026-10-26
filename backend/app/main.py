@@ -15,6 +15,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.api import router as api_router
+from app.care import router as care_router
 from app.config import settings
 from app.database import get_db
 
@@ -66,6 +67,7 @@ app.add_middleware(
 )
 
 app.include_router(api_router)
+app.include_router(care_router)
 
 
 # Health Check Endpoint

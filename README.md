@@ -22,6 +22,10 @@ ResQ Pet AI is an open-source animal welfare coordination platform connecting ci
 - 🗄️ **Database Setup** - PostgreSQL/SQLite support with SQLAlchemy and Alembic migration
 - 📞 **Vapi-Ready Intake** - Authenticated native tool-call webhook with retry-safe case creation
 - 📱 **Flutter MVP** - Login, citizen reporting, NGO operations, and volunteer status flow
+- 🗺️ **Rescue Paw Map** - GPS or tap-to-place locations and organization-scoped active rescue markers
+- 📷 **Rescue Photos** - Camera/gallery reporting with authenticated photo storage and viewing
+- 🩺 **Vet Care Requests** - Owner/farmer requests, veterinarian scheduling, and follow-up notes
+- 🐄 **Heat-Cycle Concerns** - Reproductive-health consultation requests for pets and livestock
 - 🎯 **Explainable Triage** - Critical/Urgent/Routine rules with recorded reasons
 - 🔄 **Real-Time Events** - Organization-scoped WebSocket case updates
 - 🐄 **Multi-Species Reports** - Pets, livestock, poultry, and working animals
@@ -38,9 +42,8 @@ ResQ Pet AI is an open-source animal welfare coordination platform connecting ci
 - Production secrets and PostgreSQL credentials
 
 #### 📅 Planned (P1/P2 - Post-Hackathon)
-- 🩺 **Veterinary Consultations** - Appointment scheduling and consultation notes
 - 🐾 **Adoption System** - Recovered animal listing and applications
-- 📊 **Reproductive Health Records** - Basic health tracking for livestock
+- 📊 **Longitudinal Health Records** - Vaccination history and herd tracking
 - 🤖 **ML Triage Model** - Machine learning enhancement (after rule-based system)
 
 ---
@@ -246,8 +249,29 @@ This is not just a "cute cats-and-dogs" app. We support:
 - 📍 **Manual location entry**: Village and district support
 - 🐄 **Multi-species intake**: Pets, livestock, poultry, and working animals
 
-Urdu interface localization, media compression, voice-note uploads, and SMS
+Photos are resized/compressed by the Android picker before upload, with a 5 MB server limit.
+Urdu interface localization, voice-note uploads, video uploads, and SMS
 fallback are planned. They are not part of the implemented demo.
+
+### Android demo
+
+The ARM64 release-mode APK uses the development signing key. The hackathon demo
+backend runs on a laptop through a free Cloudflare HTTPS tunnel; keep PostgreSQL,
+FastAPI, and the tunnel running. A tunnel restart may change the hostname and
+require updating Vapi and rebuilding the APK.
+
+The Vapi dashboard conversation created a rescue case successfully. Incoming
+PSTN calling remains unverified; the free US number cannot place international
+outbound calls. Voice usage consumes provider credits separately from number allocation.
+
+Backend validation: 23 tests passed, 85.96% coverage. Flutter analysis and two widget
+tests passed, including coordinator verification/refresh regression coverage.
+
+The app's top bar provides Rescue paw map and Vet and animal care buttons.
+Reporters see organization rescue pins without reporter contact details.
+Veterinarians manage appointments assigned to them. This records requests,
+schedules, and follow-up notes; video calls, automatic diagnosis, prescriptions,
+breeding-partner matching, and an in-app generative chatbot are not implemented.
 
 ---
 

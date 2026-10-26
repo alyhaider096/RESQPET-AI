@@ -15,7 +15,10 @@ from alembic import context
 # Add parent directory to path to import app modules
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from app import models  # noqa: F401 - register SQLAlchemy metadata
+from app import (
+    care,  # noqa: F401 - register consultation metadata
+    models,  # noqa: F401 - register SQLAlchemy metadata
+)
 from app.config import settings
 from app.database import Base, normalize_database_url
 

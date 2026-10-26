@@ -23,6 +23,8 @@ def seed() -> None:
             db.add(org)
             db.flush()
         users = [
+            ("vet@resqpet.demo", "Demo Veterinarian", Role.VETERINARIAN.value, settings.DEMO_VET_PASSWORD),
+            ("owner@resqpet.demo", "Demo Pet Owner / Farmer", Role.OWNER.value, settings.DEMO_OWNER_PASSWORD),
             (
                 settings.ADMIN_BOOTSTRAP_EMAIL,
                 "System Admin",
@@ -49,6 +51,8 @@ def seed() -> None:
             ),
         ]
         for email, name, role, password in users:
+            if not password:
+                continue
             if not db.scalar(select(User).where(User.email == email)):
                 db.add(
                     User(

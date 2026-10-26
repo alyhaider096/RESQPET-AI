@@ -59,6 +59,9 @@ class RescueCaseRead(BaseModel):
     district: str
     village: str | None
     landmark: str | None
+    latitude: float | None
+    longitude: float | None
+    photo_count: int = 0
     priority: str
     priority_reasons: list[str]
     status: str
